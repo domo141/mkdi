@@ -4,7 +4,7 @@
 aba1d26aaa0cf419aeb673c2ed2c806a  debian-en-ie-locale.sh
 ff64d7cb65c8f76613106e918471fb6c  mkdi-00-lib.sh
 7dfc145cd180bbcda9d7348146851e57  mkdi-01-all-template.sh
-a7327cbcf85e04d005704744a9a4a0a4  mkdi-01-base-for-mm.sh
+27c6561e179b126d4bc420ff617e4eb3  mkdi-01-base-for-mm.sh
 3dd8ab25158821a4e9f97b5995b7b65d  mkdi-01-debian-enie-locale.sh
 3e88ee954e846ed4c87edf3b72823a30  mkdi-01-notmuch-build-env.sh
 41d9bfb70a439cc1dda744b5a8cb8833  mkdi-01-test.sh

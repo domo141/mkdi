@@ -24,7 +24,7 @@ apt-get -y autoremove
 apt-get -y clean
 rm -rf /var/lib/apt/lists/
 
-mm_ver=3.3.0
+mm_ver=3.4.0
 
 wget --progress=dot:mega https://releases.mattermost.com/$mm_ver/mattermost-team-$mm_ver-linux-amd64.tar.gz
 tar -C /opt -zxf mattermost-team-$mm_ver-linux-amd64.tar.gz
