@@ -1,0 +1,97 @@
+....mkdokkrfile 1.0
+# SPDX-License-Identifier: BSD-2-Clause
+
+# This file demonstrates (and describes) the features of mkdokkrfile.pl
+
+FROM debian:9-slim
+
+#....include common-initial-layers.isrc -- if used could replace above FROM
+#....include vars.isrc -- if used could replace sets, but not skipline...
+
+__SKIP__
+Initial set of vars are 'spc', 'tab', 'nl' and those that  are given on
+command line. Those have global scope. Vars set on files last until the
+current output file is finished (i.e. until file from command line is fully
+processed).
+__CONT__
+
+....set apt-clean-cmdline0 apt-get -y autoremove && apt-get -y clean
+....set apt-clean-cmdline <..apt-clean-cmdline0..> && rm -rf /var/lib/apt/lists/
+
+__SKIP__
+# run skipline prefix is # (~ /^\s*#\s/, at start of every (included) file)
+__CONT__
+....run-skipline-prefix ##
+__SKIP__
+# the above changed that to ~ /^\s*#\s/ (until end of (included) file)
+__CONT__
+
+....set packages less
+....set packages <..packages..> vim mg
+
+# one empty line (if any) removed after ....run line (and before ....end)
+....run /bin/sh -xeufc
+
+## Locale is set in a way that it is both ubuntu and debian compatible
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get install -y -q locales
+if test -f /etc/locale.gen
+then    sed -i '/en_IE.UTF-8/ s/^. *//' /etc/locale.gen
+fi
+locale-gen en_IE.UTF-8
+echo 'LANG="en_IE.UTF-8"' > /etc/default/locale
+apt-get install -y -q <..packages..>
+<..apt-clean-cmdline..>
+
+## It took quite a few times to get exec-as-user work reasonably well,
+## during development of that it was in separate ....run -- ....end
+## section. Now it is combined to this for one less layer.
+
+useradd -m -k /dev/null user
+
+## When tried  ....run /bin/su - user -c /bin/sh -xeufc
+## to run some command on one fedora 28 host, running debian 9 based
+## container, got strange silent exits. This alternative wrapper program
+## seems to work better (perhaps not as secure, but got that particular
+## build job done).
+cat > /usr/bin/exec-as-user <<'EOF'
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+die "Usage: $0 user command [args...]\n" unless @ARGV >= 2;
+
+my $user = shift;
+my @user = getpwnam $user;
+die "Failed to read user '$user' pw entry: $!\n" unless @user;
+
+chdir $user[7];
+$ENV{HOME} = $user[7];
+$ENV{USER} = $user;
+delete $ENV{user};
+$( = $) = "$user[3] $user[3] 0";
+$< = $> = $user[2]; die "setting uids: $!\n" if $!;
+exec @ARGV
+EOF
+chmod 755 /usr/bin/exec-as-user
+
+....end
+....run /usr/bin/exec-as-user user /bin/sh -xeufc
+
+## note: this block of code produces no fs layer content
+exec >&2
+:; echo ***
+:; uname -a
+:; ulimit -a
+:; id
+:; env
+:; pwd
+:; ls -la
+:; echo ***
+
+....end
+
+__END__
+
+execute ./mkdokkrfile.pl Dockerfile.1.src -- then examine Dockerfile.1.out

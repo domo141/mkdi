@@ -1,0 +1,17 @@
+....mkdokkrfile 1.0
+# SPDX-License-Identifier: BSD-2-Clause
+
+# The idea of this file is that from one base (testimage1:latest) in
+# this case, one could create many downstream images. Alternate way
+# is to create base using ....include, and rely on image cache.
+# Just that IIRC the cache cannot be shared by other users on other
+# computers.
+
+FROM testimage1:latest
+
+....run /bin/sh -c
+
+# nothing to do, let's fail on purpose (this line not seen in Dockerfile.2.out)
+exit 2
+
+....end

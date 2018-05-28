@@ -1,0 +1,38 @@
+
+mkdokkrfile -- preprosessor to create Dockerfile for DEVELOPMENT work
+
+mkdokkrfile.pl takes input files whose names end with '.src' and
+preprocesses those to create files ending with '.out'.
+
+The output files are suitable as input for `docker build`.
+
+mkdokkrfile.pl provides the following features:
+
+  - use variables/macros in the source file
+  - include other files for content
+  - create RUN sections easier
+  - skip parts of a source file
+  - end processing of a source file
+
+These features ease creation of DEVELOPMENT docker container images,
+in my opinion creating production images should be done a bit
+differently, for example:
+
+  - create final filesystem image tarball at the end of `docker build`
+    process, and then use `docker import` to create image from that.
+
+  - start a container from good base docker image (one which doesn't
+    have anything extra), modify it and then use `docker commit` to
+    create image from that.
+
+Look into Dockerfile.1.src to see what kind of content mkdokkrfile.pl
+accepts as input.
+
+Run `./mkdokkrfile.pl Dockerfile.1.src` to create `Dockerfile.1.out`,
+then inspect how the output file looks like.
+
+Glance through `./mkdokkrfile.pl` to see how all of this work
+(for nitty gritty details -- if needed).
+
+Finally, execute `[sudo] make testimage1` to get first docker image
+created using the dockerfile just created.
