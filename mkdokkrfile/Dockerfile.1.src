@@ -11,8 +11,8 @@ FROM debian:9-slim
 __SKIP__
 Initial set of vars are 'spc', 'tab', 'nl' and those that  are given on
 command line. Those have global scope. Vars set on files last until the
-current output file is finished (i.e. until file from command line is fully
-processed).
+current output file is finished (i.e. until file from command line is
+fully processed).
 __CONT__
 
 ....set apt-clean-cmdline0 apt-get -y autoremove && apt-get -y clean
@@ -57,8 +57,8 @@ useradd -m -k /dev/null user
 ## build job done).
 cat > /usr/bin/exec-as-user <<'EOF'
 #!/usr/bin/perl
-use strict;
-use warnings;
+#use strict;
+#use warnings;
 
 die "Usage: $0 user command [args...]\n" unless @ARGV >= 2;
 
@@ -66,12 +66,12 @@ my $user = shift;
 my @user = getpwnam $user;
 die "Failed to read user '$user' pw entry: $!\n" unless @user;
 
-chdir $user[7];
+chdir $user[7] or warn "Cannot chdir to '$user[7]': $!\n";
 $ENV{HOME} = $user[7];
 $ENV{USER} = $user;
-delete $ENV{user};
+$! = 0;
 $( = $) = "$user[3] $user[3] 0";
-$< = $> = $user[2]; die "setting uids: $!\n" if $!;
+$< = $> = $user[2]; die "Setting user '$user' uids/gids: $!\n" if $!;
 exec @ARGV
 EOF
 chmod 755 /usr/bin/exec-as-user

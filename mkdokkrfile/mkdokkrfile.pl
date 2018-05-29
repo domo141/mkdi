@@ -9,13 +9,13 @@
 #	    All rights reserved
 #
 # Created: Thu 24 May 2018 21:22:12 EEST too
-# Last modified: Mon 28 May 2018 22:41:57 +0300 too
+# Last modified: Tue 29 May 2018 22:35:12 +0300 too
 
 use 5.10.1;
 use strict;
 use warnings;
 
-$ENV{'PATH'} = '/sbin:/usr/sbin:/bin:/usr/bin';
+$ENV{'PATH'} = '/usr/bin:/bin'; # for diff(1)
 
 my %gvars = ( spc => ' ', tab => "\t", nl => "\n" );
 my $c = 0;
@@ -101,7 +101,7 @@ sub dfio($$$)
 	$ple = 0 if $ple;
 
 	if (/^\.{4}run\s+(.*)/) {
-	    my @content = ( 'RUN ["');
+	    my @content = ( 'RUN ["' );
 	    push @content, "$_\", \"" foreach (split ' ', $1);
 	    push @content, "\\\n";
 	    my @lines;
@@ -135,6 +135,7 @@ sub dfio($$$)
 }
 
 my $bn0 = $0; $bn0 =~ s,.*/,,;
+my $dus = 1;
 foreach (@ARGV) {
     my $fn = $_;
     s/[.]src$// or die; # internal error
@@ -157,6 +158,7 @@ foreach (@ARGV) {
 	my $n = <P>;
 	if (defined $n) {
 	    open O, '>>', 'dokkrfile.diffs';
+	    $dus = 0, print O '=== ', scalar localtime, "\n" if $dus;
 	    $o =~ s/[.]out(\s)/.prv$1/;
 	    $n =~ s/[.]wip(\s)/.out$1/;
 	    print O "\n$o$n";
