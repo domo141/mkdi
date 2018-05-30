@@ -13,6 +13,9 @@ all:
 	@sed -n '/^all:/d; /^\./d; /^[[:alnum:]\.%-]*:/s/^/  /p' $(MAKEFILE)
 	@echo
 
+# It is somewhat dumb it is hard to restrict what is sent to docker daemon
+# during build. Fortunately .git/ is not too big in this project.
+
 .PHONY: testimage
 testimage1: Dockerfile.1.out
 	docker build -f $< -t $@ .

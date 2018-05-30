@@ -66,7 +66,8 @@ my $user = shift;
 my @user = getpwnam $user;
 die "Failed to read user '$user' pw entry: $!\n" unless @user;
 
-chdir $user[7] or warn "Cannot chdir to '$user[7]': $!\n";
+if ($ARGV[0] eq '.') { shift }
+else { chdir $user[7] or warn "Cannot chdir to '$user[7]': $!\n" }
 $ENV{HOME} = $user[7];
 $ENV{USER} = $user;
 $! = 0;
