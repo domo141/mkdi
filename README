@@ -1,0 +1,28 @@
+
+MKDI -- MaKe Docker Images
+==========================
+
+These tools provide means to build docker images in other ways that the
+'Dockerfile' method.
+
+Oldest alternative in 'mkdi/' uses docker run/.../docker commit to
+create the images. This was pretty versatile, but it grew somewhat
+complex and using multiple files started to look less intuitive.
+
+Fast forward 20 months, the 'mkdokkrfile/' implementation preprocesses
+"source" files to Dockerfiles. This brings convenience creating those
+'RUN' blocks, and w/ makefiles the output image name gets defined in
+process... just that 20 months is time long enough to forget the
+things `docker build` just cannot do...
+
+So, immediate successor of that is this 'mkdibuild.pm'. It gives
+the versatility of 'mkdi/', (uses docker run/.../docker commit method)
+and a build of multiple image layers can be handled in one file
+requiring 'mkdibuild.pm' in its content.
+
+This `mkdibuild` is implemented in perl(1). The idea is to keep it as
+simple as is possible, so that it is easier to concentrate on perl's
+strengths than its weaknesses. Doing the same things writing perl
+code that can be done in Dockerfile doesn't require any more skills
+than is required to write Dockerfile, and the example file
+'mkdi-example.pl' shows these options pretty well.
