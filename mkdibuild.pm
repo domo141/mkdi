@@ -7,7 +7,7 @@
 #           All rights reserved
 #
 # Created: Sun 03 Jun 2018 20:17:21 EEST too
-# Last modified: Fri 22 Jun 2018 23:36:09 +0300 too
+# Last modified: Mon 25 Jun 2018 22:35:09 +0300 too
 
 # How to use:
 
@@ -53,13 +53,17 @@ sub mkdi_init($$)
     die "Unknown version '$_[0]'; currently supported '1.0'\n"
         unless $_[0] == 1.0;
 
-    my %images;
+    my (%images, @images);
     open P, '-|', qw/docker images -qa --no-trunc -f dangling=false/
       or die "docker images: $!\n";
-    chomp, $images{$_} = 1 while (<P>); # dedup
+    while (<P>) {
+        chomp;
+        next if defined $images{$_};
+        $images{$_} = 1;
+        push @images, $_;
+    }
     close P or die "docker images: exit $?\n";
 
-    my @images = sort keys %images; %images = ();
     open P, '-|', qw/docker inspect --type image --format/,
 #      '{{.Id}} {{.RepoTags}} {{index .ContainerConfig.Labels "mkdi-digest"}}',
 #      '{{.Id}} {{.RepoTags}} {{index .Config.Labels "mkdi-digest"}}',
@@ -76,7 +80,8 @@ sub mkdi_init($$)
         } else { $digest = 0 }
         #warn "\tid: $id\n\ttags: $tags\n\tdigest: $digest";
         my $lref = [ $id, $digest, $tags ]; # $lref->[2] not accessed so far...
-        $_mkdi_digests{$digest} = $lref if $digest;
+        $_mkdi_digests{$digest} = $lref
+          if $digest and not defined $_mkdi_digests{$digest};
         #warn "--- $tags $digest";# if $digest;
         foreach (split /\s+/, $tags) {
             $_mkdi_from = $_[1] if $_ eq $_[1];
