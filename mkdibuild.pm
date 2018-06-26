@@ -7,7 +7,7 @@
 #           All rights reserved
 #
 # Created: Sun 03 Jun 2018 20:17:21 EEST too
-# Last modified: Mon 25 Jun 2018 22:35:09 +0300 too
+# Last modified: Tue 26 Jun 2018 18:22:06 +0300 too
 
 # How to use:
 
@@ -48,18 +48,18 @@ my (%_mkdi_digests, %_mkdi_names);
 my $_mkdi_from = '';
 my $_mkdi_dgst;
 
-sub mkdi_init($$)
+sub mkdi_init($$@)
 {
     die "Unknown version '$_[0]'; currently supported '1.0'\n"
         unless $_[0] == 1.0;
-
-    my (%images, @images);
+    shift;
+    my (%ahash, @images);
     open P, '-|', qw/docker images -qa --no-trunc -f dangling=false/
       or die "docker images: $!\n";
     while (<P>) {
         chomp;
-        next if defined $images{$_};
-        $images{$_} = 1;
+        next if defined $ahash{$_};
+        $ahash{$_} = 1;
         push @images, $_;
     }
     close P or die "docker images: exit $?\n";
@@ -70,11 +70,11 @@ sub mkdi_init($$)
 #      '{{.Id}} {{.RepoTags}} {{.Config.Labels}}', # still crashes...
       '{{.Id}} {{.RepoTags}} {{.Config}}',
       @images or die;
+    %ahash = ();
     while (<P>) {
         #warn " -- $_";
         next unless /^(\S+)\s+\[(.*?)\]\s+(.*?)\s*$/;
         my ($id, $tags, $digest) = ($1, $2, $3);
-        $_mkdi_from = $_[1] if $id eq $_[1];
         if ($digest =~ /\bmkdi-digest:md5:([0-9a-f]{32})\b/) {
             $digest = $1;
         } else { $digest = 0 }
@@ -83,16 +83,25 @@ sub mkdi_init($$)
         $_mkdi_digests{$digest} = $lref
           if $digest and not defined $_mkdi_digests{$digest};
         #warn "--- $tags $digest";# if $digest;
+        $_mkdi_from = $_[0] if $id eq $_[0];
         foreach (split /\s+/, $tags) {
-            $_mkdi_from = $_[1] if $_ eq $_[1];
+            foreach my $a (@_) {
+                $ahash{$a} = 1 if $a eq $_;
+            }
             $_mkdi_names{$_} = $lref;
         }
     }
     #die "test exit $.";
     close P; # don't check exit value as $base may not be there
-    die "Cannot find initial image '$_[1]'\n" unless $_mkdi_from;
-    # in init mkdi_digest code w/ the id (sha256 hash) of the from image
+    unless ($_mkdi_from) {
+        foreach (@_) {
+            $_mkdi_from = $_, last if defined $ahash{$_};
+        }
+        die "Cannot find any of the initial images '@_'\n" unless $_mkdi_from;
+    }
+    # initially mkdi_digest code is the id (sha256) of the from image
     $_mkdi_dgst = $_mkdi_names{$_mkdi_from}->[0];
+    print "From $_mkdi_from (id: $_mkdi_dgst)\n"; # note: image id (not digest)
 }
 
 my @_mkdi_actions;

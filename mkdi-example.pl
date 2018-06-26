@@ -39,7 +39,7 @@ sub mkdi_build($) # expect perl warning
 }
 
 
-mkdi_init 1, 'docker.io/debian:9-slim';
+mkdi_init 1, 'debian:9-slim', 'docker.io/debian:9-slim';
 #mkdi_init 1, 'docker.io/debian:9';
 #mkdi_init 1, 'docker.io/debian:8.6';
 
