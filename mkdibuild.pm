@@ -7,7 +7,7 @@
 #           All rights reserved
 #
 # Created: Sun 03 Jun 2018 20:17:21 EEST too
-# Last modified: Tue 26 Jun 2018 18:22:06 +0300 too
+# Last modified: Tue 07 Aug 2018 19:58:52 +0300 too
 
 # How to use:
 
@@ -334,7 +334,10 @@ sub _mkdi_create($)
     push @changes, '-a', $author  if $author ne '';
     push @changes, '-m', $message if $message ne '';
 
-    _mkdi_system0 qw/docker commit/, @changes, $_mkdi_wipname, $_[0];
+    my $wipname = $_mkdi_wipname;
+    _mkdi_system0 qw/docker stop -t0/, $_mkdi_wipname;
+    undef $_mkdi_wipname;
+    _mkdi_system0 qw/docker commit/, @changes, $wipname, $_[0];
     die if $?;
     if ($mkdi_datetag) {
         my $totime = sprintf '%02d%02d%02d', $tm[2], $tm[1], $tm[0];
@@ -342,9 +345,8 @@ sub _mkdi_create($)
         $todate =~ s/[.].*//;
         _mkdi_system0 qw/docker tag/, $_[0], "$b:$todate-$totime";
     }
-    _mkdi_system0 qw/docker rm -f/, $_mkdi_wipname;
+    _mkdi_system0 qw/docker rm -f/, $wipname;
     die if $?;
-    undef $_mkdi_wipname;
     _mkdi_system0 qw/docker history/, $_[0];
 }
 
