@@ -7,7 +7,7 @@
 #           All rights reserved
 #
 # Created: Sun 03 Jun 2018 20:17:21 EEST too
-# Last modified: Tue 07 Aug 2018 19:58:52 +0300 too
+# Last modified: Sat 22 Sep 2018 00:13:00 +0300 too
 
 # How to use:
 
@@ -159,6 +159,7 @@ sub mkdi_tmp_no_recreate() { $_mkdi_tmp_no_recreate = 1 }
 
 sub _mkdi_digest();
 sub _mkdi_create($);
+sub _mkdi_system1(@);
 sub _mkdi_system0(@);
 sub _mkdi_qsystem(@);
 
@@ -181,7 +182,7 @@ sub mkdi_build($)
             if ($mkdi_dry_run) {
                 print "Would tag image $id as $_[0].\n";
             } else {
-                _mkdi_system0 qw/docker tag/, $id, $_[0] and die $?;
+                _mkdi_system1 qw/docker tag/, $id, $_[0] and die $?;
             }
         }
         goto _done;
@@ -247,7 +248,7 @@ sub _mkdi_digest()
 
 my $_mkdi_wipname;
 END {
-    _mkdi_system0 qw/docker stop -t0/, $_mkdi_wipname if defined $_mkdi_wipname
+    _mkdi_system1 qw/docker stop -t0/, $_mkdi_wipname if defined $_mkdi_wipname
 }
 
 sub _mkdi_create($)
@@ -258,7 +259,7 @@ sub _mkdi_create($)
 
     $_mkdi_wipname = 'wip-'.$_[0]; $_mkdi_wipname =~ tr/:/-/;
     _mkdi_qsystem qw/docker rm -f/, $_mkdi_wipname;
-    _mkdi_system0 qw/docker run -d --name/, $_mkdi_wipname, @mkdi_dbr_opts,
+    _mkdi_system1 qw/docker run -d --name/, $_mkdi_wipname, @mkdi_dbr_opts,
       '--entrypoint=', $_mkdi_from, 'sleep', $todate;
       #'--entrypoint=sleep', $_mkdi_from, $todate;
 
@@ -296,13 +297,16 @@ sub _mkdi_create($)
             next;
         }
         if ($op eq 'run') {
-            _mkdi_system0 qw/docker exec -t/, $_mkdi_wipname, @{$_};
+            my $a1 = shift @{$_};
+            if ($a1) {
+                _mkdi_system1 qw/docker exec -t/, $_mkdi_wipname, $a1, @{$_} }
+            else { _mkdi_system0 qw/docker exec -t/, $_mkdi_wipname, @{$_} }
             die if $?;
             next;
         }
         if ($op eq 'copy') {
             my $dest = $_mkdi_wipname.':'.shift @{$_};
-            _mkdi_system0 qw/docker cp/, @{$_}, $dest;
+            _mkdi_system1 qw/docker cp/, @{$_}, $dest;
             die if $?;
             next;
         }
@@ -335,23 +339,28 @@ sub _mkdi_create($)
     push @changes, '-m', $message if $message ne '';
 
     my $wipname = $_mkdi_wipname;
-    _mkdi_system0 qw/docker stop -t0/, $_mkdi_wipname;
+    _mkdi_system1 qw/docker stop -t0/, $_mkdi_wipname;
     undef $_mkdi_wipname;
-    _mkdi_system0 qw/docker commit/, @changes, $wipname, $_[0];
+    _mkdi_system1 qw/docker commit/, @changes, $wipname, $_[0];
     die if $?;
     if ($mkdi_datetag) {
         my $totime = sprintf '%02d%02d%02d', $tm[2], $tm[1], $tm[0];
         my $b = $_[0]; $b =~ s/:.*//;
         $todate =~ s/[.].*//;
-        _mkdi_system0 qw/docker tag/, $_[0], "$b:$todate-$totime";
+        _mkdi_system1 qw/docker tag/, $_[0], "$b:$todate-$totime";
     }
-    _mkdi_system0 qw/docker rm -f/, $wipname;
+    _mkdi_system1 qw/docker rm -f/, $wipname;
     die if $?;
-    _mkdi_system0 qw/docker history/, $_[0];
+    _mkdi_system1 qw/docker history/, $_[0];
+}
+
+sub _mkdi_system1(@) {
+    print "Executing: @_\n";
+    return unless system @_;
+    my @c = caller; die "Died at $c[1] line $c[2].\n";
 }
 
 sub _mkdi_system0(@) {
-    print "Executing: @_\n";
     return unless system @_;
     my @c = caller; die "Died at $c[1] line $c[2].\n";
 }

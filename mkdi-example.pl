@@ -43,7 +43,10 @@ mkdi_init 1, 'debian:9-slim', 'docker.io/debian:9-slim';
 #mkdi_init 1, 'docker.io/debian:9';
 #mkdi_init 1, 'docker.io/debian:8.6';
 
-mkdi_run '/bin/sh', '-xeufc', <<'EOF';
+# '' or 0 as first mkdi_run arg: no command echo by mkdibuild.pl
+# the difference is that '' does not change digest, 0 does
+
+mkdi_run '', '/bin/sh', '-xeufc', <<'EOF';
 # Locale is set in a way that it is both debian and ubuntu compatible
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
