@@ -7,7 +7,7 @@
 #           All rights reserved
 #
 # Created: Sun 03 Jun 2018 20:17:21 EEST too
-# Last modified: Sat 22 Sep 2018 00:13:00 +0300 too
+# Last modified: Wed 31 Oct 2018 21:30:15 +0200 too
 
 # How to use:
 
@@ -248,7 +248,7 @@ sub _mkdi_digest()
 
 my $_mkdi_wipname;
 END {
-    _mkdi_system1 qw/docker stop -t0/, $_mkdi_wipname if defined $_mkdi_wipname
+    _mkdi_system1 qw/docker stop -t 0/, $_mkdi_wipname if defined $_mkdi_wipname
 }
 
 sub _mkdi_create($)
@@ -339,7 +339,7 @@ sub _mkdi_create($)
     push @changes, '-m', $message if $message ne '';
 
     my $wipname = $_mkdi_wipname;
-    _mkdi_system1 qw/docker stop -t0/, $_mkdi_wipname;
+    _mkdi_system1 qw/docker stop -t 0/, $_mkdi_wipname;
     undef $_mkdi_wipname;
     _mkdi_system1 qw/docker commit/, @changes, $wipname, $_[0];
     die if $?;

@@ -19,7 +19,7 @@ BEGIN { require './mkdibuild.pm' }
 #@::default_cmd = (); # would disable the feature. sleeps then.
 
 #@::mkdi_dbr_opts = (); # docker build run options. careful!
-#@::mkdi_dbr_opts = qw[--privileged -v.:/mnt]; # one example
+#@::mkdi_dbr_opts = qw[--privileged -v .:/mnt]; # one example
 
 #
 
